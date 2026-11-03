@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f6f2">
+  <title>도착코치 — 다음 역.</title>
+  <link rel="stylesheet" href="/app.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#home" aria-label="도착코치 홈"><span class="brand-mark" aria-hidden="true">↗</span><span>도착코치</span></a>
+    <div class="top-status"><span class="status-dot" aria-hidden="true"></span><span id="aiStatus">AI 연결 상태 확인 중</span></div>
+  </header>
+
+  <main id="home" class="layout">
+    <section class="intro" aria-labelledby="pageTitle">
+      <div class="intro-copy">
+        <p class="eyebrow">YOUR NEXT MOVE</p>
+        <h1 id="pageTitle">다음 역<span class="hero-arrow" aria-hidden="true">↗</span></h1>
+        <div class="line-theme"><span class="line-theme-dot" aria-hidden="true"></span><span id="lineThemeLabel">호선을 선택하세요</span></div><p class="intro-note">역을 고르고, 시간을 맞추세요. 나머지는 간편하게.</p>
+      </div>
+      <div class="clock-card"><span>지금 서울 시각</span><strong id="liveClock">--:--</strong><small id="liveDate">날짜 확인 중</small></div>
+    </section>
+
+    <section id="goalCard" class="card goal-card" aria-labelledby="goalHeading">
+      <div class="card-heading">
+        <div><p class="eyebrow">01 / ROUTE</p><h2 id="goalHeading">어디로 갈까요?</h2></div>
+        <button class="button button-light" id="voiceStart" type="button"><span aria-hidden="true">◉</span> 말해서 시작</button>
+      </div>
+      <p class="voice-hint" id="voiceStatus">말하기 기능은 버튼을 눌러 시작해. 이 앱은 녹음 파일을 저장하지 않아. 브라우저 음성인식의 처리는 브라우저 제공자 정책을 따라.</p>
+      <form id="goalForm" class="form-grid">
+        <div class="route-toolbar"><span>출발 → 도착</span><button id="swapStations" class="swap-button" type="button" aria-label="출발역과 도착역 바꾸기"><span aria-hidden="true">⇄</span> 맞바꾸기</button></div><label class="route-field">출발역 <span class="optional">선택</span><input id="fromStation" name="from" autocomplete="off" placeholder="예: 신촌" maxlength="50"></label>
+        <label class="route-field">도착역 <span class="required">필수</span><input id="toStation" name="to" autocomplete="off" placeholder="예: 이대" maxlength="50" required></label>
+        <label>도착 날짜<input id="targetDate" name="date" type="date" required></label>
+        <label>도착 목표 시각<input id="targetTime" name="time" type="time" required></label>
+        <label>준비 시간 <span class="unit-input"><input id="prepMinutes" name="prep" type="number" min="0" max="240" value="20" required><span>분</span></span></label>
+        <label>역까지 걷는 시간 <span class="unit-input"><input id="walkMinutes" name="walk" type="number" min="0" max="240" value="8" required><span>분</span></span></label>
+        <label>지하철 이동 예상 <span class="unit-input"><input id="rideMinutes" name="ride" type="number" min="1" max="240" value="35" required><span>분</span></span><small>경로 미연결 · 내 예상값</small></label>
+        <div class="form-actions"><button class="button button-primary" type="submit">시간 계산하기 <span aria-hidden="true">→</span></button><button class="button button-outline" id="startGoal" type="button">안내 시작</button></div>
+      </form>
+      <div class="calc-note"><span class="note-icon" aria-hidden="true">i</span><span>이동 시간은 사용자가 입력한 예상값이야. 실시간 열차 도착이나 길찾기 결과로 연결되어 있지 않아.</span></div>
+    </section>
+
+    <section id="coachCard" class="card coach-card" aria-labelledby="coachHeading" aria-live="polite">
+      <div class="coach-header"><div><p class="eyebrow">02 / TIMING</p><h2 id="coachHeading" tabindex="-1">목표 시간을 계산해볼까?</h2></div><button id="stopGoal" class="icon-button" type="button" aria-label="안내 중지" hidden>×</button></div>
+      <div id="coachContent" class="coach-content empty-coach"><div class="coach-symbol" aria-hidden="true">◷</div><p>목표를 입력하면 준비 시작 시각과 늦어도 출발할 시각을 먼저 보여줄게.</p></div>
+      <div id="coachActions" class="coach-actions" hidden><button id="markArrived" class="button button-primary" type="button">도착했어</button><button id="editGoal" class="button button-outline" type="button">목표 수정</button></div>
+    </section>
+
+    <section id="routinesPanel" class="card routines-card" aria-labelledby="routinesHeading">
+      <div class="card-heading"><div><p class="eyebrow">03 / ROUTINES</p><h2 id="routinesHeading">저장한 반복 일정</h2></div><button id="newRoutine" class="button button-light" type="button">＋ 일정 추가</button></div>
+      <p class="section-note">평소 가는 일정은 한 번 저장해두고, 오늘은 한 번 눌러 시작해.</p>
+      <div id="routineList" class="routine-list"><p class="muted empty-list">아직 저장된 일정이 없어.</p></div>
+      <form id="routineForm" class="routine-form" hidden>
+        <input id="routineId" type="hidden"><button id="routineVoice" type="button" class="button button-light">◉ 말해서 일정 채우기</button>
+        <div class="form-grid routine-fields">
+          <label>일정 이름<input id="routineName" maxlength="50" placeholder="예: 월수금 수업" required></label>
+          <label>목표 도착 시각<input id="routineTime" type="time" required></label>
+          <fieldset class="weekday-field"><legend>반복 요일 <span class="required">필수</span></legend><div class="weekday-list">
+            <label><input type="checkbox" value="1">월</label><label><input type="checkbox" value="2">화</label><label><input type="checkbox" value="3">수</label><label><input type="checkbox" value="4">목</label><label><input type="checkbox" value="5">금</label><label><input type="checkbox" value="6">토</label><label><input type="checkbox" value="0">일</label>
+          </div></fieldset>
+          <div class="route-toolbar"><span>반복 경로</span><button id="swapRoutineStations" class="swap-button" type="button" aria-label="반복 일정 출발역과 도착역 바꾸기"><span aria-hidden="true">⇄</span> 맞바꾸기</button></div><label>출발역<input id="routineFrom" placeholder="예: 신촌"></label><label>도착역<input id="routineTo" placeholder="예: 이대" required></label>
+          <label>준비 시간 <span class="unit-input"><input id="routinePrep" type="number" min="0" max="240" value="20"><span>분</span></span></label>
+          <label>역까지 걷기 <span class="unit-input"><input id="routineWalk" type="number" min="0" max="240" value="8"><span>분</span></span></label>
+          <label>지하철 이동 예상 <span class="unit-input"><input id="routineRide" type="number" min="1" max="240" value="35"><span>분</span></span></label>
+        </div>
+        <div class="form-actions"><button class="button button-primary" type="submit">일정 저장</button><button class="button button-outline" id="cancelRoutine" type="button">취소</button></div>
+      </form>
+      <div id="calendarNotice" class="inline-notice" role="status" hidden></div>
+    </section>
+
+    <section class="card timetable-card" aria-labelledby="timetableHeading">
+      <div class="card-heading"><div><p class="eyebrow">04 / LIVE</p><h2 id="timetableHeading">서울 지하철 운행 확인</h2></div><button class="button button-light" id="refreshTimetable" type="button">전체 노선 새로고침</button></div>
+      <div class="data-status"><span id="timetableStatus" class="status-pill status-off">실시간 API 확인 중</span><span id="timetableUpdated">조회 전</span></div>
+      <form id="arrivalForm" class="arrival-search">
+        <label for="arrivalStation">실시간 도착정보를 볼 역 이름</label>
+        <div class="arrival-controls"><input id="arrivalStation" type="text" placeholder="예: 서울, 시청, 이대" maxlength="60" required><button id="arrivalSearch" class="button button-light" type="submit">도착시간 조회</button></div>
+      </form>
+      <p id="arrivalNotice" role="status">역을 입력하고 조회하면 방향별 도착 예정시간을 보여 줘. 동일 역은 60초 캐시를 사용해.</p>
+      <div id="arrivalResults" class="realtime-lines" aria-live="polite"></div>
+      <details><summary>예정 시간표 연결 상태 (실시간 도착정보와 별개)</summary><p id="timetableApiStatus" class="fine-print">시간표 API는 미연결입니다. OA-22750 서비스는 종료되었고 15143847 호출 명세·키는 미확인입니다.</p></details>
+      <p id="timetableMessage" class="section-note">API 키를 설정하면 서울 열린데이터광장에서 실시간 열차 위치를 가져와.</p>
+      <div id="realtimeLines" class="realtime-lines" aria-live="polite"></div>
+      <p class="fine-print">한 번에 최대 16회 요청, 기본 하루 1,000회 한도야. 키가 설정되면 페이지를 열어둔 동안 30분마다 갱신하고 60초 캐시를 써. 일부 노선·서울 밖 구간은 제공되지 않을 수 있어. 이 위치는 도착시간·경로 계산에는 아직 반영되지 않아.</p>
+    </section>
+
+    <section class="card settings-card" aria-labelledby="settingsHeading">
+      <div class="card-heading"><div><p class="eyebrow">05 / SETTINGS</p><h2 id="settingsHeading">내 기본값과 알림</h2></div></div>
+      <div class="setting-row"><div><strong>기본 준비 시간</strong><p>새 목표에 자동으로 넣을 시간</p></div><label class="compact-control"><input id="defaultPrep" type="number" min="0" max="240" value="20" aria-label="기본 준비 시간 분"><span>분</span></label></div>
+      <div class="setting-row"><div><strong>출발역 기본값</strong><p>루틴과 음성 입력에서 사용해</p></div><input id="defaultFrom" class="compact-text" maxlength="50" placeholder="출발역"></div>
+      <div class="setting-row"><div><strong>브라우저 알림</strong><p id="notificationHelp">알림은 이 페이지가 열려 있을 때만 확인돼.</p></div><label class="switch"><input id="notificationsEnabled" type="checkbox"><span aria-hidden="true"></span><span class="visually-hidden">브라우저 알림 켜기</span></label></div>
+      <div class="setting-row"><div><strong>단계 소리</strong><p>준비·출발 단계가 바뀔 때 짧게 울려.</p></div><label class="switch"><input id="soundEnabled" type="checkbox"><span aria-hidden="true"></span><span class="visually-hidden">단계 소리 켜기</span></label></div>
+      <div class="setting-row home-row"><div><strong>집 위치로 출발 재촉</strong><p id="homeHelp">집 위치는 버튼을 눌러 직접 등록해. 페이지를 닫으면 추적하지 않아.</p></div><div class="home-controls"><button id="saveHome" class="button button-light" type="button">현재 위치 저장</button><label class="switch"><input id="homeEnabled" type="checkbox"><span aria-hidden="true"></span><span class="visually-hidden">집 위치 출발 재촉 켜기</span></label></div></div>
+      <div id="settingsMessage" class="inline-notice" role="status" hidden></div>
+    </section>
+  </main>
+
+  <footer class="footer"><span>도착코치</span><span>실시간 위치는 별도 조회 · 이동시간은 입력한 예상값</span><button id="clearLocal" type="button">이 기기 저장 내용 지우기</button></footer>
+
+  <dialog id="voiceDialog" class="voice-dialog" aria-labelledby="voiceHeading">
+    <form method="dialog" class="dialog-top"><button class="icon-button" aria-label="닫기">×</button></form>
+    <p class="eyebrow">말해서 시작</p><h2 id="voiceHeading">어디에 몇 시까지 갈 거야?</h2>
+    <p class="section-note">브라우저 음성인식은 브라우저 제공자가 처리할 수 있어. 지원되지 않으면 최대 15초 녹음 뒤 전사 요청을 서버로 보내. OpenAI 키가 없으면 외부로 보내지 않고 연결 안내를 보여줘. 음성 파일은 이 앱에 저장하지 않아.</p>
+    <div class="voice-controls"><button id="speechButton" class="button button-primary" type="button">◉ 말하기 시작</button><button id="speechStop" class="button button-outline" type="button" hidden>녹음 멈추기</button></div>
+    <p id="voiceDialogStatus" class="voice-status" role="status">말하면 선택 항목에 자동으로 채워져. 문장을 아래에서 고칠 수도 있어.</p>
+    <label class="transcript-label">말한 문장<textarea id="transcript" rows="4" maxlength="2000" placeholder="예: 내일 아침 9시까지 이대 가야 해. 준비는 30분 걸려."></textarea></label>
+    <div class="dialog-actions"><button id="parseTranscript" class="button button-primary" type="button">말한 내용 적용</button><button id="cancelVoice" class="button button-outline" type="button">입력칸으로 돌아가기</button></div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
